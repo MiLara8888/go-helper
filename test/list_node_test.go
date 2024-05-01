@@ -1,8 +1,9 @@
 package test
 
 import (
-	listnode "github.com/MiLara8888/go-helper/listnode/list_node"
 	"testing"
+
+	listnode "github.com/MiLara8888/go-helper/list_node"
 )
 
 func TestInsertion(t *testing.T) {

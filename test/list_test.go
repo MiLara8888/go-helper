@@ -2,8 +2,9 @@ package test
 
 import (
 	"fmt"
-	slicelist "github.com/MiLara8888/go-helper/listnode/slice_list"
 	"testing"
+
+	slicelist "github.com/MiLara8888/go-helper/slice_list"
 )
 
 func TestList(t *testing.T) {

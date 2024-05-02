@@ -1,4 +1,4 @@
-package main
+package concurency
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func main() {
+func Con() {
 
 	//Сначала мы создаем наше условие, используя стандартный sync.Mutex в качестве Locker.
 	c := sync.NewCond(&sync.Mutex{})

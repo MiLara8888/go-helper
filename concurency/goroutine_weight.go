@@ -20,7 +20,7 @@ func GoWeight() {
 		wg.Done()
 		<-c
 	}
-	const numGoroutines = 1e4
+	const numGoroutines = 100000
 	wg.Add(numGoroutines)
 
 	before := memConsumed()

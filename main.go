@@ -2,48 +2,44 @@ package main
 
 import (
 	"fmt"
+
 	"sync"
 	"time"
 )
 
+func listen(name string, data map[string]string, c *sync.Cond) {
+	c.L.Lock()
+	c.Wait()
+
+	fmt.Printf("[%s] %s\n", name, data["key"])
+
+	c.L.Unlock()
+}
+
+func broadcast(name string, data map[string]string, c *sync.Cond) {
+	time.Sleep(time.Second)
+
+	c.L.Lock()
+
+	data["key"] = "value"
+
+	fmt.Printf("[%s] данные получены\n", name)
+
+	c.Signal()
+	c.L.Unlock()
+}
+
 func main() {
+	data := map[string]string{}
 
-	//Сначала мы создаем наше условие, используя стандартный sync.Mutex в качестве Locker.
-	c := sync.NewCond(&sync.Mutex{})
+	cond := sync.NewCond(&sync.Mutex{})
 
-	//Далее мы создаем срез нулевой длины. Поскольку мы знаем, что в конечном итоге добавим 10
-	//элементов, мы создаем экземпляр с емкостью 10.
-	queue := make([]interface{}, 0, 10)
 
-	removeFromQueue := func(delay time.Duration) {
-		time.Sleep(delay)
-		// Мы еще раз входим в критическую секцию условия, чтобы можно было изменить данные, относящиеся к условию.
-		c.L.Lock()
-		// Здесь мы имитируем удаление элемента из очереди, переназначая заголовок среза
-		// второму элементу.
-		queue = queue[1:]
-		fmt.Println("Removed from queue")
-		// Здесь мы выходим из критической секции условия, поскольку мы успешно исключили из очереди элемент.
-		c.L.Unlock()
-		// Здесь мы сообщаем горутине, ожидающей выполнения условия, что что-то произошло.
-		c.Signal()
-	}
-	for i := 0; i < 10; i++ {
-		// Мы входим в критическую секцию условия, вызывая Lock для условия.
-		c.L.Lock()
-		// десь мы проверяем длину очереди в цикле. Это важно, потому что сигнал об условии не
-		// обязательно означает, что произошло то, чего вы ждали, а означает лишь то, что что-то произошло.
-		for len(queue) == 2 {
-			// Мы вызываем Wait, который приостанавливает основную горутину до тех пор, пока не будет
-			// отправлен сигнал об условии.
-			c.Wait()
-		}
-		fmt.Println("Adding to queue")
-		queue = append(queue, struct{}{})
-		// Здесь мы создаем новую горутину, которая удаляет элемент из очереди через одну секунду.
-		go removeFromQueue(1 * time.Second)
-		// Здесь мы выходим из критической секции условия, поскольку мы успешно поставили в очередь
-		// элемент.
-		c.L.Unlock()
-	}
+	go listen("слушатель 1", data, cond)
+	go listen("слушатель 2", data, cond)
+
+	go broadcast("источник", data, cond)
+
+
+
 }

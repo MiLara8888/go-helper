@@ -1,4 +1,4 @@
-package main
+package cnannelsgo
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func newRandStream (done <-chan interface{}) <-chan int {
+func newRandStream(done <-chan interface{}) <-chan int {
 	randStream := make(chan int)
 	go func() {
 		defer fmt.Println("newRandStream closure exited.")
@@ -22,7 +22,7 @@ func newRandStream (done <-chan interface{}) <-chan int {
 	return randStream
 }
 
-func main() {
+func DoNe() {
 
 	done := make(chan interface{})
 	randStream := newRandStream(done)

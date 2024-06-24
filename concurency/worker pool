@@ -1,0 +1,78 @@
+package main
+
+import (
+	"context"
+	"fmt"
+	"runtime"
+	"sync"
+	"time"
+)
+
+func main() {
+	workerPool()
+}
+
+func workerPool() {
+
+	ctx, cancel := context.WithCancel(context.Background())
+	// ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*20)
+	defer cancel()
+
+	toProcess, process := make(chan int, 500), make(chan int, 500)
+
+	//для воркеров
+	wg := sync.WaitGroup{}
+	//создать по коллчество рабочих процов
+	for i := 0; i <= runtime.NumCPU(); i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			worker(ctx, toProcess, process)
+		}()
+	}
+
+	go func(){
+		for i:=1; i<=100; i++{
+			toProcess <- i
+			// if i==500{
+			// cancel()
+
+			// }
+
+		}
+		close(toProcess)
+	}()
+
+	go func(){
+
+		//подождать закрытие воркеов (это значит мы туда больше не будем писать)
+		//и только после этого ракрыть резуьтирующий контекст
+		wg.Wait()
+		close(process)
+	}()
+
+	//вывод результатов
+	var count int
+	for j := range process{
+		count += 1
+		fmt.Println(j)
+	}
+
+	fmt.Println(count)
+}
+
+//выполнитель задач
+func worker(ctx context.Context, toProcess chan int, process chan int) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case val, ok := <-toProcess:
+			if !ok {
+				return
+			}
+			time.Sleep(1 * time.Millisecond*500)
+			process <- val * val
+		}
+	}
+}
